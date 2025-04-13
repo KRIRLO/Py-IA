@@ -11,7 +11,6 @@ from docx import Document
 # Descargar recursos necesarios de NLTK
 def inicializar_nltk():
     try:
-        nltk.download()
         nltk.data.find('tokenizers/punkt')
     except LookupError:
         print("Descargando recursos de NLTK necesarios...")
