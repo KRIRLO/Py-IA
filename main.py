@@ -4,26 +4,8 @@ from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 import os
 import PyPDF2
 from typing import List, Tuple
-from nltk.tokenize import sent_tokenize
-import nltk
 from docx import Document
-
-# Descargar recursos necesarios de NLTK
-def inicializar_nltk():
-    try:
-        nltk.data.find('tokenizers/punkt')
-    except LookupError:
-        print("Descargando recursos de NLTK necesarios...")
-        nltk.download('punkt', quiet=True)
-        # Verificar que la descarga fue exitosa
-        try:
-            nltk.data.find('tokenizers/punkt')
-            print("Recursos descargados exitosamente.")
-        except LookupError:
-            raise Exception("Error: No se pudo descargar el recurso 'punkt' de NLTK.")
-
-# Inicializar NLTK al inicio
-inicializar_nltk()
+import re
 
 # Configurar el dispositivo DirectML
 device = dml.device()
@@ -68,20 +50,41 @@ def cargar_documento(ruta_archivo: str) -> str:
 
 # Función para responder preguntas
 def dividir_texto(texto: str, max_tokens: int) -> List[str]:
-    # Dividir el texto en oraciones
-    oraciones = sent_tokenize(texto)
+    # Dividir el texto en oraciones usando expresiones regulares
+    patron_oraciones = r'(?<=[.!?])\s+'
+    oraciones = re.split(patron_oraciones, texto)
     fragmentos = []
     fragmento_actual = ""
     
     for oracion in oraciones:
+        # Limpiar la oración
+        oracion = oracion.strip()
+        if not oracion:
+            continue
+            
         # Verificar si agregar la oración excedería el límite de tokens
         temp_fragmento = fragmento_actual + " " + oracion if fragmento_actual else oracion
-        if len(tokenizer.tokenize(temp_fragmento)) <= max_tokens:
+        tokens_temp = len(tokenizer.tokenize(temp_fragmento))
+        
+        if tokens_temp <= max_tokens:
             fragmento_actual = temp_fragmento
         else:
             if fragmento_actual:
                 fragmentos.append(fragmento_actual)
-            fragmento_actual = oracion
+            # Si la oración por sí sola es muy larga, dividirla
+            if len(tokenizer.tokenize(oracion)) > max_tokens:
+                palabras = oracion.split()
+                fragmento_actual = ""
+                for palabra in palabras:
+                    temp = fragmento_actual + " " + palabra if fragmento_actual else palabra
+                    if len(tokenizer.tokenize(temp)) <= max_tokens:
+                        fragmento_actual = temp
+                    else:
+                        if fragmento_actual:
+                            fragmentos.append(fragmento_actual)
+                        fragmento_actual = palabra
+            else:
+                fragmento_actual = oracion
     
     if fragmento_actual:
         fragmentos.append(fragmento_actual)
