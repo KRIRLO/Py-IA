@@ -115,22 +115,26 @@ def calcular_puntuacion_respuesta(respuesta: str, pregunta: str, contexto: str) 
     return puntuacion
 
 def responder_pregunta(pregunta: str, contexto: str) -> Tuple[str, float]:
-    inputs = tokenizer(pregunta, contexto, return_tensors="pt", max_length=512, truncation=True)
-    inputs = {k: v.to(device) for k, v in inputs.items()}
+    # Tokenizar la entrada y mover al dispositivo
+    inputs = tokenizer(pregunta, contexto, return_tensors="pt", max_length=512, truncation=True, padding=True)
+    input_ids = inputs["input_ids"].to(device)
+    attention_mask = inputs["attention_mask"].to(device)
     
+    # Ejecutar el modelo
     with torch.no_grad():
-        outputs = model(**inputs)
+        outputs = model(input_ids=input_ids, attention_mask=attention_mask)
     
     # Obtener los mejores índices de inicio y fin
     start_logits = outputs.start_logits[0].cpu().numpy()
     end_logits = outputs.end_logits[0].cpu().numpy()
     
     # Encontrar la mejor combinación de inicio y fin
-    answer_start = torch.argmax(outputs.start_logits)
-    answer_end = torch.argmax(outputs.end_logits) + 1
+    answer_start = int(torch.argmax(outputs.start_logits))
+    answer_end = int(torch.argmax(outputs.end_logits)) + 1
     
-    answer_tokens = inputs.input_ids[0][answer_start:answer_end]
-    respuesta = tokenizer.decode(answer_tokens)
+    # Decodificar la respuesta
+    answer_tokens = input_ids[0][answer_start:answer_end]
+    respuesta = tokenizer.decode(answer_tokens, skip_special_tokens=True)
     
     # Calcular puntuación de la respuesta
     puntuacion = calcular_puntuacion_respuesta(respuesta, pregunta, contexto)
