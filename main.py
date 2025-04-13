@@ -2,7 +2,7 @@ import torch
 import torch_directml as dml
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering, Trainer, TrainingArguments
 from datasets import Dataset
-import pandas as pd
+import transformers  as pd
 import os
 import re
 import json
@@ -111,11 +111,13 @@ model = model.to(device)
 
 # Ejemplo de datos de entrenamiento
 # Deberías reemplazar esto con tus propios datos
-documentos = cargar_documentos("ruta/a/tus/documentos")
+documentos = cargar_documentos("documentos")
 preguntas_respuestas = [
-    {"doc_id": "documento1.txt", "pregunta": "¿Cuál es el tema principal?", "respuesta": "El tema principal es..."},
-    {"doc_id": "documento1.txt", "pregunta": "¿Quién es el autor?", "respuesta": "El autor es..."},
-    # Agrega más ejemplos según sea necesario
+    {
+        "doc_id": "DEV.FSD.ELIOT v3.0.02 with changelog.docx", 
+        "pregunta": "¿Qué ocurre si un tote no tiene asignado un Zone_Id en el V10 WCS?",
+        "respuesta": "El tote se desvía automáticamente a la Jackpot Line."
+    }
 ]
 
 # Crear dataset
