@@ -1,0 +1,987 @@
+﻿                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Functional Specifications Document 
+Operations & Interface.
+ELIOT EssilorLuxottica
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Table of Contents
+1	Document References	4
+2	Purpose of this Document	5
+3	Description of the Application	5
+3.1	Architecture	5
+3.2	Communication Interfaces	6
+3.2.1	ELIOT Web API	6
+3.2.2	JDBC	6
+4	Glossary	7
+4.1	Section Color-Coding Overview:	7
+5	Functional Description	8
+5.1	Receiving/Inbound	8
+5.1.1	Receiving Flow Diagram Overview	8
+5.1.2	Receiving Interface Specification	11
+5.1.2.1	ELIOT Web API	11
+5.1.2.2	RTTF3_WCS_003 JDBC Connection	13
+5.2	Picking Totes	15
+5.2.1	Picking Totes Flow Diagram Overview	15
+5.2.2	Picking Process Interface Specification	19
+5.2.2.1	RTTF2_WCS-001-SAP-WCS JDBC Connection	19
+5.3	Shipping Sorter	24
+5.3.1	Shipping Sorter Flow Diagram Overview	24
+5.3.2	Shipping Sorter Interface Specification	28
+5.3.2.1	AFS 1 LUP ODBC Connection	28
+
+    1 Document References
+
+Document Owner
+GrupoV10
+Document Location
+V10 Systems Department Sharepoint
+Document Register
+
+Linked Documents
+ ELIOT – Bastian integration for Automation_v02.pptx
+ Luxottica WCS M&I Flow.pdf
+ Flowcharts LUXOTTICA proceso.vsdx
+
+
+
+Authors
+Role
+Name
+Department
+Signed Date
+Signature
+Dev Manager
+Javier Muñoz
+Software
+
+
+
+
+
+
+
+
+Version Control
+Version
+Changelog
+Date
+1.0
+ Initial preparation
+ May 17, 2023
+2.0
+ Change in implementation language and database
+ September 13, 2023
+
+
+    2 Purpose of this Document
+The purpose of this document is to define the functionality of the V10 Warehouse Control System that ELIOT EssilorLuxottica has decided to deploy on its premises at Tijuana. A Warehouse Control System (WCS) is an integrated set of tools for coordinating material handling sub-systems such as roller conveyors, carousels, scales, and sorters. At each decision point, the WCS determines the most efficient product flow and transmits directives to the equipment controllers to achieve the desired result.
+
+The V10 WCS will operate to the standards set by ELIOT EssilorLuxottica after its parametrization, its customization, and its integration via interfaces with their Enterprise Resource Planning (ERP), in this case SAP.
+
+This document deals with the requirements related to the V10 WCS functionality, and to its interfaces to SAP and InfoShip. Hardware requirements and the system architecture are beyond the scope of this document.
+
+
+    3 Description of the Application
+The V10 WCS is a specialized warehouse control software solution that orchestrates activity flows within a warehouse or distribution center.
+
+This product is designed with a high degree of flexibility to manage facilities with automated material-handling hardware. At all times, the V10 WCS controls the different processes carried out during manufacturing, handling, receipt of goods, storage, order preparation, and shipping. The core functionalities of the V10 WCS can be defined by assigning values to pre-defined parameters, without having to modify programs or any kind of code.
+
+
+        3.1 Architecture
+The V10 WCS features a procedure execution architecture enabling us to tailor the system to suit the client’s needs and to easily incorporate new functionalities and procedures at the client’s request, without modifying the system core. This architecture enables easy migration to newer versions, making it straightforward to port changes and customizations from one version to another.
+
+The programming languages used in the development of the V10 WCS are ASP.NET Core in .NET 6 and Transact-SQL. 
+
+The application user interface is optimized for web access and is compatible with Microsoft Edge, Google Chrome, and Safari.
+
+The schematic diagram below shows the simplified planned architecture to manage communication among the different systems.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        3.2 Communication Interfaces
+            3.2.1 ELIOT Web API
+EssilorLuxottica provides a custom Web API developed in-house that allows the V10 WCS to query SAP for tote information. The ELIOT Web API provides a one-way communication channel between the V10 WCS and SAP where the V10 WCS always acts as the client and SAP always acts as the server. To query SAP for the details of a given tote, the V10 WCS sends a request providing the tote identifier via a URL to be determined. SAP, in turn, sends a response to the V10 WCS in the form of a JSON message with the requested details.
+
+
+            3.2.2 JDBC
+Java Database Connectivity (JDBC) is a standard application program interface that uses the Java programming language along with a JDBC technology-based database driver to access a wide variety of relational database engines. The V10 WCS, SAP, and the transport management system all feature a Microsoft SQL Server database engine. Communication among those databases is performed via JDBC.
+
+
+
+
+
+    4 Glossary
+        4.1 Section Color-Coding Overview:
+Physical Hardware
+
+Users
+
+Interfaces
+
+Information
+
+Screens
+
+To be Reviewed
+
+Table 1: Color codes.
+
+    • V10 WCS
+    • Divert Line
+    • Inbound Spine: it’s the conveyor in between Transfer01 and Transfer02 of accumulation conveyor, capable to divert totes to divert lines and merge totes from picking lines. This is a accumulation conveyor of 30 in zones for tote transportation.
+    • Super User - For Configurations
+    • Associates - For Day-to-day operations 
+    • Divert Lines vs Destinations vs Transitions
+
+
+
+
+
+
+
+
+
+    5 Functional Description
+        5.1 Receiving/Inbound
+            5.1.1 Receiving Flow Diagram Overview
+
+Figure 2: Receiving/Inbound Flowchart.
+
+
+
+Tote Filling description and SAP responsibilities for Receiving. The Receiving process begins with a Tote Filling manual operation. The operator takes an empty inbound tote and scans its LPN. Inbound totes LPNs begin with letters K or H. The operator will scan the materials into the tote, then the operator pushes the tote into one of the four inbound spurs merging onto the trunkline RCV1A01. As for the Tote Filling operation, SAP is responsible for zone allocation, tote inventory tracking, tote volumetry, and workload balancing.
+
+
+
+
+
+Tote LPN registration onto the V10 WCS @Cam01. At the end of the trunkline RCV1A01, the camera Cam01 scans the tote LPN, and the BastianPLC sends the information to the V10 WCS, which in turn checks if the LPN exists in its database. The V10 WCS sends a request to SAP with the Tote LPN and the Request Timestamp via the ELIOT Web API (URL to be determined). SAP should return a response in the form of a JSON message with the Tote LPN, the Virtual Tote, the Zone ID, and the Response Timestamp. The agreed round trip time for the message exchange via this interface should not exceed 3 seconds. Once the V10 WCS gets this information, it stores this information in its database. 
+
+Assumption: If there is no response to the first request, the V10 WCS should send a new request to SAP via the ELIOT Web API (URL to be determined) 30 seconds after the time on the first request’s Request Timestamp.
+
+Assumption: If there is no response to the second request, the tote destination is deemed unassigned and the tote will be automatically diverted to the Jackpot Line.
+
+Physical warehouse areas, divert lines, and SAP zone management. Each physical area is identified with an integer number ranging from 1 through 99, and each physical area has its corresponding Divert Line identified with the same number. On the other hand, SAP defines virtual zones that are identified as well with an integer number ranging from 1 through 99. One or more SAP zones can be allocated to the same physical warehouse area/divert line. Mappings among SAP zones and physical warehouse areas/divert lines will be manually managed by the Super User via a Zone Master Data web page in the V10 WCS.
+
+Assumption: If the SAP zone for the scanned LPN is not set in the Zone Master Data screen, or if the V10 WCS hasn’t received the SAP zone yet, then the inbound tote will automatically be diverted to the Jackpot Line. 
+
+Assumption: Any divert line can be configured as the Jackpot Line, and only one single divert line in the whole warehouse can be configured as the Jackpot Line.
+
+Inbound Tote Divert Policy when the SAP Zone ID is NOT in the V10 WCS Database. The inbound tote proceeds through the Inbound Spine that connects all the physical areas in the warehouse until it reaches one of the cameras from Cam03 through Cam09. When reaching any of these cameras, the BastianPLC sends the Tote LPN to the V10 WCS, which in turn checks if the Zone ID allocated by SAP exists in its database and if it matches the corresponding divert line on which the camera is fitted. If the SAP Zone ID is not present in the V10 database, the inbound tote will keep moving forward through the inbound spine all the way to the Jackpot Line. If the divert line allocated to the inbound tote is full, then the inbound tote will keep looping through the Inbound Spine.
+
+Assumption: Any of the divert lines can be configured as the Jackpot Line for inbound totes.
+
+Assumption: Any tote with an unreadable LPN will keep looping on the Inbound Spine. 
+
+Assumption: The V10 WCS will not be required to prevent the eventual saturation of the Inbound Spine.
+
+
+Inbound Tote Divert Policy when the SAP Zone ID is present in the V10 WCS database. If the SAP Zone ID  is present in the V10 WCS database, the V10 WCS sends an order to the BastianPLC to get the tote diverted. Once the BastianPLC executes the divert operation, it will send a divert confirmation to the V10 WCS. Interface PLC-WCS. The V10 WCS will update the record for the Status from NULL to “IN” in the border table ZoneRouting_Data.  
+
+
+Looping process for full line or missed divert totes. At the end of the Inbound Spine at Cam10, the Transfer02 will transfer all Inbound Totes identified by the camera as K or H, or non-read totes to the recirculation conveyor of the Inbound Spine.
+
+Assumption: Neither non-read totes nor totes starting with K or H should go straight thru the Transfer02.
+Assumption: Any Picking Tote should pass beyond the Inbound Spine towards the Highway Outbound Spine. 
+
+Inbound Tote Policy at Cam02. Any inbound tote that gets back from Transfer02 via the Inbound Spine on the recirculation conveyor will be scanned by Cam02. The Bastian PLC sends the scanned LPN to the V10 WCS, which in turn checks if the LPN exists in its Database. If the LPN is not in the database the V10 WCS sends a request to SAP with the Tote LPN and the Request Timestamp via the ELIOT Web API (URL to be determined). SAP should return a response with the Tote LPN, the Virtual Tote, the Zone ID, and the Response Timestamp. The agreed round trip time for the message exchange via this interface should not exceed 3 seconds. Once the V10 WCS gets this information, it stores it in its database.
+
+Assumption: If there is no response to the first request, the V10 WCS should send a new request to SAP via the ELIOT Web API (URL to be determined) 30 seconds after the time on the first request’s Request Timestamp.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            5.1.2 Receiving Interface Specification
+                5.1.2.1 ELIOT Web API
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    5.1.2.1.1 Purpose
+The purpose of this Web API is to register the inbound tote LPN onto the V10 WCS. The client in this communication is the V10 WCS, and the server is SAP. 
+
+
+
+                    5.1.2.1.2 Fields for the Inbound Tote Registration Client Request
+The request data provided by the V10 WCS are detailed in the table below:
+
+
+Column Name / Field
+Datatype
+Description
+Tote_LPN
+nvarchar (10)
+
+This field will be used for Tote LPN. It is not unique.
+Req_Timestamp
+Char (17)
+Format: YYYYMMDDhhmmssxxx (EDT)
+Example: 20170619103350997
+Table 2: Inbound Tote Registration Request Data.
+
+
+
+                    5.1.2.1.3 Example URL for the Inbound Tote Registration Request
+The details for the URL (scheme, authority, host, port, and path) are yet to be determined by ELIOT. The example below focuses on the query substring starting with a question mark (?) conveying the request data:
+
+
+https://usr:pwd@host:port/path?Tote_LPN=HC99826&Req_Timestamp:20230913103350996
+
+
+
+                    5.1.2.1.4 Fields for the Inbound Tote Registration Server Response
+The response data provided by the SAP are detailed in the table below:
+
+
+Column Name / Field
+Datatype
+Description
+Tote_LPN
+nvarchar (10)
+
+This field will be used for Tote LPN. It is not unique.
+Virtual_Tote
+nvarchar (35)
+This is the Virtual Tote Number and it is Unique.
+Zone_Id
+Int
+Nullable
+Resp_Timestamp
+Char (17)
+Format: YYYYMMDDhhmmssxxx (EDT)
+Example: 20170619103350997
+Table 3: Inbound Tote Registration Response Data.
+
+
+                    5.1.2.1.5 Example JSON File for the Inbound Tote Registration Server Response
+
+{
+  		"inboundToteRegResponse": {
+    			"Tote_LPN": "HC99826",
+    			"Virtual_Tote": "ABCDEFGHIJKLMNOPRSTUVWXYZ1234567",
+    			"Zone_Id": 99,
+    			"Resp_Timestamp": 20170619103350996
+  		}
+}
+
+                5.1.2.2 RTTF3_WCS_003 JDBC Connection
+
+
+`
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    5.1.2.2.1 Purpose
+The purpose of this JDBC connection is to record and exchange the tote Status during the transportation stage in the Receiving. The name of this table is ZoneRouting_Data. The client in this communication is SAP and the server is the V10 WCS Microsoft SQL database. Once the tote is diverted, the V10 WCS updates the Status to “IN”, and SAP will query the information and will update Status to “NA”. Luxottica will be responsible for installing the database and border tables. V10 can create as many internal tables as they see fit for their needs.
+
+
+                    5.1.2.2.2 Fields of the RTTF3_WCS_003 Query at the ZoneRouting_Data Table
+
+Column Name
+Datatype
+Description
+Id
+Int
+Auto Generate Field
+Tote_LPN
+nvarchar (10)
+This field will be used for Tote LPN. It is not unique.
+Virtual_Tote
+nvarchar (35)
+
+Zone_Id
+Int
+
+Div_Timestamp
+Char (17)
+Format: YYYYMMDDhhmmssxxx (EDT)
+Example: 20170619103350997
+Status
+Char (2)
+IN status when confirmed divert by the PLC.
+Table 4: ZoneRouting_Data Table (Fields Marked Green Modified by V10 During Query).
+
+
+Note: Fields in red are unique to the table. All the above fields are inserted during the divert confirmation. As indicated above, some fields begin as NULL. The primary key in the table is marked in blue. Fields in green are written to this table by the V10 WCS during this event.
+
+
+
+                    5.1.2.2.3 Fields of the RTTF3_WCS_003 Update at the Table ZoneRouting_Data
+
+Column Name
+Datatype
+Description
+Id
+Int
+Auto Generate Field
+Tote_LPN
+nvarchar (10)
+This field will be used for Tote LPN. It is not unique.
+Virtual_Tote
+nvarchar (35)
+Unique ID for Tote.
+Zone_Id
+Int
+
+Div_Timestamp
+Char (17)
+Format: YYYYMMDDhhmmssxxx (EDT)
+Example: 20170619103350997
+Status
+Char (2)
+“NA” status updated by SAP
+Table 5: ZoneRouting_Data Table (Fields Marked Green Modified by V10 during Update).
+
+Note: Fields in red are unique to the table. All the above fields are inserted during the divert confirmation. Some of the above fields begin as NULL. The primary key in the table is marked in blue.  Fields in green are written to this table by the V10 WCS during this event.
+
+        5.2 Picking Totes
+            5.2.1 Picking Totes Flow Diagram Overview
+
+Figure 5: Picking Totes Flowchart.
+
+Tote Filling Description and SAP Responsibilities for Picking Totes. The Receiving process begins with a Tote Filling manual operation. The operator takes an empty Picking tote and scans its LPN. Picking Totes LPNs begin with letters T or R. The operator will scan the materials inside the tote and will push the tote into one of the four Picking Lanes that convey and merge on to the recirculation lane of the Inbound Spine. 
+
+
+
+As for the tote filling operation, SAP is responsible for zone allocation, tote inventory tracking, tote volumetry, and workload balancing and wave creation. Totes are picked onto waves, a wave can consists of a single tote or of multiple totes. The information will be sent to the V10WCS via the Interface RTTF2_WCS-001-SAP-WCS on the border table SAP_WCS_Tote_Hdr supplied by Luxottica. 
+SAP must tell the Shipping Associate which products are to be placed in the Picking Tote, and when the Picking Tote is complete. Picking Totes are not transferable to other stations. Once SAP indicates the Picking Tote completion, the Shipping Associate must place the Picking Tote onto one of the four merge conveyors leading to the Inbound Spine.
+Assumption: Border database tables are used for information exchange between SAP and V10 only. To avoid concurrent read and write operations on this table and possible information loss due to SAP not being able to write new records, the V10 WCS should import newly written records to an internal table for the private use of the V10 WCS. The import of new records should be carried out on a periodic basis. The time interval is to be agreed upon with Luxottica on the implementation of the JDBC connection.
+
+Assumption: SAP will provide V10 with the information needed to track Picking Totes along the transport systems via specific border tables in the V10 database. SAP will provide V10 with product information, quantities, etc. so that V10 can pass it along to the preparation machines (commissioner, etc.). V10 will use private tables in its database to share this information with the preparation machines and will not use tables shared with SAP for this purpose.
+
+Tote LPN Registration onto the V10WCS @Cam02. At the end of the recirculation of the Inbound Spine, Transfer01 the camera Cam02 scans the tote LPN, and the BastianPLC sends the information to the V10 WCS, which in turn checks if the LPN exists in its database. If the LPN doesn’t exist OR if the LPN exists and the Status of already diverted (this is a new use of the same tote) it will be registered on the V10WCS system. If the tote has no Wave_Nr on the database once it reaches the Picking Jackpot Lane the V10WCS will identify it as a Picking Jackpot Lane tote and will be directed to the Picking Jackpot Lane. The V10WCS will identify the tote as well as a singles tote and as a multi tote and will be treated differently from this point.
+
+Assumption: The Picking Jackpot Lane could be different from the Receiving Jackpot lane and should be configurable.
+
+Assumption: Single totes are identified by the column WCS_DestinationArea with the data “SMC3”, “SPAC”. Wave size will always be 1 for singles. 
+
+Assumption: Single totes for the second level are identified by the column WCS_DestinationArea with the data “NTRF”. Wave size will always be 1 for second-level totes. With a prefix N.
+
+Assumption: Multi totes are identified by the column WCS_DestinationArea with the data “SPTA” “LPUT” “MPAC”. Wave size could be variable for Multis. Multis could also be wave size 1.
+
+
+
+Destination 1 second-level @Cam06. Second-level totes will be diverted to Destination 1 identified by Cam06. All second-level totes will be identified by the string  “NTRF” in the field WCS_destination_area of the table Tote_Hdr.
+
+Destination 2 Singles @Cam13. Singles will be diverted to Destination 2 identified by Cam13. The V10WCS will be responsible for tote status update until the status field is updated to status 4.
+
+Transition 2 All Multis @Cam12. All Multi totes will be diverted at Transition 2 identified by cam12, irrespective of its final destination.
+
+Destination 3 Multis for Commissioner @Cam14. When the Commissioner is present, given by a status button on the Master Screen, all Multi totes on status 1 will be diverted to Destination 3 identified by Cam14.
+
+	Assumption: Status 2 field will be updated by the Commissioner when its present.
+Assumption: Status 2 field will be updated by the WCS when the commissioner its absent.
+
+
+Destination 4 Multis for Put to Wall @Cam15. If the Put to Wall machine requires the tote wave to be processed, it will update the Status field to 4 in the  [e1_ext].[dbo].[Tote_HDR table.
+
+Destination 5 Multis for SureSort1 @Cam16. If the SureSort1 machine requires the tote wave to be processed, it will update the Status field to 4  in the [e1_ext].[dbo].[Tote_HDR table.
+
+Destination 6 Multis for SureSort2 @Cam17. If the SureSort2 machine requires the tote wave to be processed, it will update the Status field to 4 in the [e1_ext].[dbo].[Tote_HDR table.
+
+
+Picking tote Transfer for Singles. All picking totes will be transferred back to the Inbound Spine and will continue conveyed towards the end of the Inbound Spine at Transfer02. 
+
+Outbound Tote for Second Level Policy. At Cam06 there will be a divert line for outbound totes going for the second level. Totes going for the second level will be treated as picking totes by the V10 WCS. All the totes for the second level will be identified by NTRF in the column name WCS_DestinationArea. The second level totes will be treated as Receiving.  When reaching any of these cameras, the BastianPLC sends the Tote LPN to the V10 WCS, which in turn checks if the WCS_DestinationArea allocated by SAP exists in its database and if it matches the corresponding divert lane for the second level.
+
+The second level totes will be treated as receiving and the destination will be sent by the SAP API, all the logic is exactly the same as receiving. 
+
+Assumption: If the divert lane allocated to the second level tote is full, then the tote will keep looping through the Inbound Spine. 
+
+The zone will be defined by the GUI and the data from the API
+Example 
+{"TOTE_ID":"N00013","V_TOTE_ID":"1003015868","ZWZONE":"22","ZTIMESTAMP":null,"ERROR":null,"Request_ts":"2023-12-04 16:35:17.038","Response_ts":"2023-12-04 16:35:19.500"}
+
+Picking Tote Divert Policy when the SAP WCS_DestinationArea is present in the V10 WCS database for second-level totes. If the SAP WCS_DestinationArea is present in the V10 WCS database, the V10 WCS sends an order to the BastianPLC to get the tote diverted at Cam06 Divert Lane3. Once the BastianPLC executes the divert operation, it will send a divert confirmation to the V10 WCS. Interface PLC-WCS. When the divert confirmation of the full wave is done, the V10 WCS will insert a record in the border table WCS_SAP_Acknowledgement for the tote wave diverted. The Bastian PLC will confirm each single tote, V10 will record each tote but will confirm them to SAP on wave completion.
+
+Highway for Picking Totes and looping process. At the end of the Inbound Spine at Cam10 all singles picking totes identified by letters T or N going for singles packing will pass through the transition conveyor to the Outbound Picking Highway Line that starts on the Transfer03.  The totes will be conveyed on the Outbound Picking Highway all the way to Transfer04 and will keep looping back at Cam11 Transfer03, if those are not diverted to any of the singles picking outbound lanes.
+
+Assumption: The highway picking lane should hold at most 10 singles pack Totes.
+(This can be configured on a Master Screen by the Super User)
+
+Assumption: If the picking Totes exceed their configured capacity per picking tote type at the end of Cam11, the V10 WCS will send a message to the PLC to release the tote back to the Inbound Spine towards the Recirculation Lane using the transition conveyor. To use the Inbound Spine as an overflow buffer for picking totes. V10 will not let more singles totes into High Way Lane.
+
+Assumption: The V10 WCS will NOT be required to prevent the eventual saturation of the Inbound Spine.
+
+Picking Tote Divert Policy when the SAP WCS_DestinationArea is present in the V10 WCS database for singles totes. If the SAP WCS_DestinationArea is present in the V10 WCS database for singles “SPAC”, the V10 WCS will send an order to the BastianPLC to get the tote diverted at Cam13 on the Divert OutboudLane2. Once the BastianPLC executes the divert operation, it will send a divert confirmation to the V10 WCS. Interface PLC-WCS. When the divert confirmation of the tote its done the V10 WCS will update the corresponding record in the border table Tote_Hdr for the tote wave diverted. Changing status to 6 wave/tote is complete and processed = 1.
+
+Status
+Description
+Updated By
+Null
+Record is fresh from SAP (should only be seen on MS SQL DB)
+
+0
+Record inserted into border table
+Luxottica
+1
+V10 has physically seen the tote @Cam02
+V10WCS
+2
+Wave is fully built
+V10WCS
+3
+Wave has been acknowledged by external packing systems
+
+4
+Wave is assigned a location
+V10WCS for singles
+Packing System for Multis
+5
+Wave is in process (actively being worked)
+Luxottica for singles
+Packing system for Multis
+6
+Wave/Tote is complete
+
+
+
+Figure 6: Wave/Tote Statuses.
+
+Buffering totes for Multis when the commissioner is absent. The tote conveyor system for multis will have a buffer method to prepare waves for multis as needed so that it can deliver waves to the packing multi systems. If this buffer is not present at the end of the Inbound Spine at Cam10, all multis picking totes identified by letters T or N will keep looping on the Inbound Spine until the wave is complete and any of the machinery Suresort1, Suresort2, or the Put Wall request the wave delivered. When the wave is completed and the machinery requests the delivery of the wave, the V10 WCS will let the tote pass through Transfer 03 and Transfer 04 to deliver to the machinery through divert outbound lane 1. To be agreed when the commissioner is working.
+
+Assumption: The highway picking lane should hold at most 20 Muti pack Totes for LPTU-machine1, SPTA-machine1, and SPTA-machine2 total of 60 totes.
+
+Assumption: Divert Outbound Lane 1 should hold at most 12 Muti pack Totes for LPTU-machine1, SPTA-machine1, and SPTA-machine2 total of 36 totes.
+
+Assumption: The wave which has been looping around the longest should have priority to exit the Highway through Divert 1. 
+
+
+Buffering totes for Multis when the commissioner is present. When the Buffer for Multi totes is present at the end of Inbound Spine at Cam10, all multi-picking totes identified by letters T or R N going for multi-packing will pass through the transition conveyor to the Outbound Picking Highway Lane that starts on the Transfer03.  The totes will be conveyed on the Outbound Picking Highway all the way to Transfer04 and will keep looping back at Cam11 Transfer03 if those are not diverted to any of the multi-picking outbound lanes. If the multi Divert Outbound Lane 1 is empty or below its conveyance capacity, totes should be diverted to the Divert Outbound lane 1 and should be diverted to the buffer system Commissioner.
+
+Assumption: Divert Outbound lane 1 should hold at most 10 Muti pack Totes for LPTU-machine1, SPTA-machine1, and SPTA-machine2 total of 30 totes and let pass new totes to the buffer system.
+
+Assumption: Commissioner will be pulling product on to it. No matter if status its 1 or 2 or some other. 
+
+Assumption: The V10 WCS will not be required to prevent the eventual saturation of the Inbound Spine.
+
+
+
+Delivering totes for Multi Machinery. The V10 WCS will provide a service to monitor the status of the picking multi totes. The machinery LPTU-machine1, LPTU-machine2,  SPTA-machine1, and SPTA-machine2 will query the table [e1_ext].[dbo].[Tote_HDR]. Whenever the machinery decides it needs the wave to be delivered, it will update the status to “3” and will insert its Put_Station_Nr. The V10WCS will deliver the totes on a wave sequence by requesting the release of the wave either to the inbound spine or the commissioner. Bastian system will update status = 1 when tote is seen for first time.  Update status = 2 when wave is fully seen.  SAP acknowledgment is not handled by bastian any longer.  Bastian will need to provide delivery locations to external systems as they will pull the work in. Status is never allowed to go backwards…it is not permissible for a wave to go from status 3,4,5,6 back to 2,1,0.
+
+Assumption: The wave which has been looping around the longest should have priority to exit the Highway through Divert 1🡪we can only divert based on complete waves. Length of time in recirculation does not matter.
+
+Assumption:  the service should be run until Cam02.
+
+
+
+            5.2.2 Picking Process Interface Specification
+                5.2.2.1 RTTF2_WCS-001-SAP-WCS JDBC Connection
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    5.2.2.1.1 Purpose
+The purpose of this JDBC Connection is to register the information that SAP sends to the V10 WCS about the totes (header and item). Luxottica will provide the [e1_ext].[dbo].[Tote_HDR]
+border table for the tote header information. In this communication the client is SAP, and the server is the V10 WCS.
+
+
+Fields in the [e1_ext].[dbo].[Tote_HDR] table
+                    5.2.2.1.2 
+This table is used by SAP to insert tote header level data. The V10 WCS must not modify its contents. If the V10 WCS needs to query or update its contents (i.e., for camera scans), it must copy new records into its own tables.
+
+Column Name
+Datatype
+Description
+Id
+int
+This is an auto-generated value.  This column must not be included in the Inserted data.
+Tote_LPN
+Char (35)
+This field will be used for Tote LPN. It is not unique (reusable)
+Wave_Nr
+Char (35)
+tote number its substitude by this one.
+
+Wave_Priority
+int
+Wave Priority:
+Totes in wave with higher priority should be sorted first by LP.
+For singles there is no wave priority (
+For multis there is priority(
+Number from 001 to 999  - 001 it’s the highest priority
+Will not be used for routing totes 
+
+Nr_Of_Totes_In_Wave
+Int
+Number of Totes in the Wave
+
+Tote_Total_Qty
+Int
+This is the total # of pieces inside the specific Tote
+WCS_Destination_Area
+Char (4)
+SPTA (Suresort)/ LPUT (large put wall)
+SMC3 and SPAC for manual and automatic
+
+Timestamp 
+Char (17)
+Format: YYYYMMDDhhmmssxxx (EDT)
+Example: 20170619103350997
+Put_Station_Nr
+
+int
+Up to bastian numbering (mapping needed)
+Status
+Release
+Int
+int
+0-6andnull
+0-6 for commissioner use
+Processed
+Int
+1 or null 
+Table 6: [e1_ext].[dbo].[Tote_HDR]Table.
+
+
+Note: highlighted Fields in Red are Unique to the table. All above fields are inserted during the event. Some fields as indicated in the above begin as NULL. Blue is (Primary Key in database table). 
+
+
+
+
+
+What is downstream destination (int) for Suresort1, Suresort2, LPUT1, LPUT2?
+We have SS1 = 61 ss2 = 62 at this moment
+
+        5.3 Shipping Sorter
+            5.3.1 Shipping Sorter Flow Diagram Overview
+
+Figure 8: Shipping Shorter Flowchart.
+
+Merge lines on to Sorter. Boxes will come to the Shipping Sorter through the box conveyors from one of the following packing areas (see figure below): SureSort Lane, LPUT Lane, SMAC Lane, SPAC Lane, VAS Lane, and Induction Lane. The controls will merge all the boxes to the Merge Conveyor SRT1B08. All boxes will be scanned at the Sorter Scanner and will be sorted according to the sorting policy configured via the Shipping Sorter Configuration screen that will be managed by the Super User and Shipping Associates depending on their privilege level.
+
+
+Figure 9: Schematic Plant Diagram.
+
+Lane identification. All lanes are identified by an integer number ranging from 1 through 32. Lanes on the left-hand side will be odd-numbered, and lanes on the right-hand side will be even-numbered. Numbering for some lines will be skipped depending on if there is a right or a left divert on its divert mechanism.
+
+Shipping Sorter Configuration Screen. The V10 WCS will provide a Shipping Sorter Configuration screen that will contain a Creation Menu, a Mapping Configuration Menu, and a Container Management Menu (see Figure 10 on page ).
+
+The Creation Menu is accessible to the Super User only, and it allows to create new entities of the following types: CarrierCode, BoxType, LogisticAgent, ContainerType, and DivertLane. 
+
+The Mapping Configuration menu is accessible to the Super User and to the Shipping Associates, and it allows to:
+
+    • Create, activate, and delete inactive CarrierCode-DivertLane mappings. Active mappings cannot be deleted.
+
+    • Create and delete BoxType-DivertLane mappings.
+
+    • Create, edit, and delete CarrierCode-LogisticAgent mappings
+
+
+Figure 10: Menu Hierarchy at the Shipping Sorter Configuration Screen.
+
+Assumption: Multiple CarrierCode can belong to one single LogisticAgent. 
+Assumption: One DivertLane belongs to one single LogisticAgent. One LogisticAgent can have several DivertLane.
+Assumption: Packages with multiple CarrierCode belonging to the same LogisticAgent can be diverted to the same DivertLane.
+
+The Container Management menu will be accessible for both the Super User and Shipping Associates, and it have a submenu for Gaylord-Trailer Manifest/webpage.
+
+Box ID registration onto the V10WCS. For each box SAP will insert Box ID, Carrier Code, Logistics Agent, Box Type, CurrentTS timestamp at the SAP_Orders border table via the interface AFS 1 LUP in the ELIOT_WCS_SAP_Db database supplied by the V10 WCS.
+
+Concurrent Access to the ELIOT_WCS_SAP_Db Border Table. To avoid concurrent read and write operations on this table and possible information loss due to SAP not being able to write new records, the V10 WCS will import newly written records to an internal table for the private use of the V10 WCS. The import of new records will be carried out on a periodic basis. The time interval is to be agreed upon with Luxottica on the implementation of the AFS 1 LUP interface.
+
+Gaylord-Trailer Opening Semiautomatic Operation. The Gaylord and Truck Lane allocations will be equipped with a switch that enables the opening/closure of the location for diverting boxes. This switch will be operated by a Shipping Associate once a Trailer/Gaylord is in its position and ready to accept products as per the Operations’ need. 
+
+
+Once enabled the opening of the location via this switch, the V10 WCS will create a new ContainerId and will send instructions to the Shipping Sorter to promptly start diverting boxes to this location. The V10 WCS will print a label to identify the Gaylord or the Trailer, and a manifest (?) to identify a Truck. There will be a single printer at the beginning of the project with the possibility to add more printers in the future.
+
+Manifest in this scenario is defined as a webpage/log that can be printed at whatever printer the operations chooses on the Eliot Network.  V10 is not responsible for auto printing a manifest.
+
+The Shipping Associates place an empty Gaylord on the locations and stick a label displaying the ContainerId barcode readable by SAP, as well as human-readable information to help identify the label, such as a timestamp, DivertLane, ContainerID, LogisticsAgent. The same process will be carried out for Truck Lanes.
+
+Assumption: Gaylords and Truck Lanes naming convention in the Tijuana plant, subject to changes:
+
+GLD0000000000000000001 (20 characters) for Gaylords
+100000000001 (10 characters) for Truck Lanes, first character will always be 1.
+
+
+Assumption: In the event of labels not being printed properly or not being printed at all (because the printer runs out of stickers or toner, etc.), the V10 WCS should provide a way to reprint the labels manually either on the same printer, after it has been fixed, or on another printer.
+
+Assumption: The project will start with one single printer for the sorting process, but additional printers may be added as needed. The V10 WCS should manage them all.
+
+Assumption: The V10 WCS should show the active shipping lanes.
+
+
+Gaylord-Trailer Manual Operation. The Shipping Associates can open a container by manually creating a ContainerID via the V10 WCS.
+
+Truck Lanes. Lane 2 and Lane 4 are identified as Truck Lanes and will be configured via the Shipping Sorter Configuration screen for big packages. The V10 WCS will use these mappings to tell the BastianPLC where to divert each box. Once the BastianPLC executes the divert operation, it will send a divert confirmation to the V10 WCS via Interface PLC-WCS. The V10 WCS will update the box sorting information via the interface AFS 1 LUP.
+ 
+Assumption: If the lane gets full the boxes will continue towards the end of the sorter through the recirculation lane and loop back to the merge lane. If the sorter gets full due to many boxes on the sorter Luxottica will have to assure that have open destinations for these boxes.
+
+Gaylord Lanes. Lanes 5 through Lanes 28 are considered Gaylord Lanes and will be configured via the Shipping Sorter Configuration screen for parcel boxes. The V10 WCS will use these mappings to tell the BastianPLC where to divert each parcel box. Once the BastianPLC executes the divert operation, it will send a divert confirmation to the V10 WCS via Interface PLC-WCS. The V10 WCS will update by the interface AFS 1 LUP.
+
+Assumption: If the lane gets full the parcel boxes will continue towards the end of the sorter through the recirculation lane and loop back to the merge lane indefinitely until the max capacity of the recirculation lane is reached. The system will issue a warning for the Shipping Associates to take action.
+
+Assumption: Several Gaylords can be open for the same Carrier Code. If so, the V10 WCS will be diverting parcel boxes to all of them using a round-robin policy.
+
+ContainerType (T) for Trucklanes
+ContainerType (G) for Gaylords
+
+Gaylord or Truck Lane Closing Policy. When a Shipping Associate closes any lane, the V10 WCS will stop diverting boxes to that lane and will send to SAP the number of boxes that have been diverted to the ContainerId at the end of that lane via the AFS 1 LUP.
+
+Pallet Lane. Lane 30 is considered a Pallet Lane. Any box that we have data about but doesn’t fit on any configuration will be diverted to the pallet lane. If not, there will be a limit with X  recirculations and the box must be diverted to this lane.
+
+
+Hospital Lane. Any packages with unreadable/not read label will be diverted to the Hospital Lane with no recirculation, Hospital Lane is identified as Lane 32. The Hospital Lane then conveys the boxes down to the ground level so that an operator validates what the issue was on this label and why it was not sorted. Once the box has been taken care of, it will be inducted manually to the Injection Lane to get back to the sorter Merge Lane.
+
+Assumption: If the lane gets full the packages will continue towards the end of the sorter through the recirculation lane and loop back to the merge lane.
+	
+Assumption: V10 should provide a configuration screen for the limit of the recirculation loop of the box.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            5.3.2 Shipping Sorter - Multiboxing
+
+Multiboxing refers to an SAP order with multiple boxes, which, from the sorter's viewpoint, should be diverted to either the Truck Lane or Pallet Lane. In the snapshot below, lanes 184 and 185 depict two boxes. The primary criteria to identify a Multiboxing instance is when the confirmation Number is not NULL, and the Quantity is greater than 1. 
+
+--mp begin=====
+
+There should also be a configurable max box count limit.
+We can use this table already presend in e1_shipping_wms
+
+
+
+If qty >  1 and qty < @maxboxcount
+	Continue multibox logic
+
+Else
+
+If qty >= @maxboxcount
+	Sent to pallet build
+
+This way if 15 box order shows up, we just immediately move to pallet instead of taking up sorter space.
+
+
+--====mp end=====
+
+
+
+
+
+There will be two flows of execution of the sorter logic. Multis and Singles. 
+
+After identifying the box type, the sorter should identify all boxes associated with the order. Before conducting any diversion operations, all boxes must pass through Scanner 25 for scanning and building a wave. When the wave is fully built it must be delivered at the destination. The table to write the acknowledgement is WCS_routing..
+
+The perfect scenario will be if we see the boxes in a very short amount of time and the carriercode is one of the two truck lanes. 
+
+Brainstorming:
+
+Sorter Box Total capabilities: 50 - 75
+
+Quantity of the order: 2-10 boxes
+
+<1% of the total SAP ORDERS. 
+—
+
+Box total capabilities: 50 - this should not be implemented because of missing mechanical parts.
+
+Limit of re circulation - 15 loops. (We are going to have 9 loops of time to see the last box) - 2 minutes a loop approx.
+
+1 order: 10 boxes
+
+⅕ - of the sorter capability while we are building the multiboxing wave. 
+
+
+
+Truck Lane /Container ID Management - Interface Wave Creation of Multiboxing (Diverting): This interface showcases the ongoing creation of multiboxing waves, where boxes are being diverted to their respective destinations. It visually displays this process as it occurs, allowing monitoring and management of the multiboxing operation. By every single multibox, V10 should provide a way to manually acknowledge the confirmation in the border SAP table. The container id should not be closed before all the boxes of the multi order are present.
+
+Safety Verification Before Truck Lane Closure - Traffic Light System: Within this interface, a traffic light system is integrated to signify specific statuses. When the light is GREEN, it indicates that the operation is proceeding smoothly, and it's safe to proceed with the closure process. However, if the light turns RED, it serves as a warning not to proceed with any closure actions.  The HMI acts as a control panel or dashboard that presents crucial information. OPS team will use this interface to assess the operational safety for closure. If the HMI signals that it's safe to proceed, the lane can be closed. However, if any risks or issues are identified through the HMI, the closure should be postponed until it's safe to do so.
+
+If an unexpected closure of the Truck lane occurs after redirecting part of the Multibox wave, the following warning system must be implemented:
+
+Printer Notification: A warning message containing essential details will be sent to the printer. This will include:
+
+    • Order Number
+    • Confirmation Order
+    • Boxes Properly Delivered
+    • Boxes Not Delivered Due to Closure
+
+Scenario Clarification: In the event of lane closure, any boxes redirected to the Truck lane but unable to proceed will be identified. These boxes will enter a recirculation loop and will subsequently be redirected to the pallet lane for proper delivery. At this point, the shipping associate must check the interface “Interface Wave Creation of Multiboxing (Diverting)” and confirm the missing boxes from the order. And manually introduce the boxes entering the truck. Once the problem is resolved at the interface, V10 should confirm the containerID and write the ack inside the border table.
+
+
+
+
+
+
+
+
+            5.3.3 Shipping Sorter Interface Specification
+                5.3.3.1 JDBC_AFS_1_LUP Connection
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    5.3.3.1.1 Purpose
+The purpose of this ODBC connection is to register the details and the routing information for the boxes coming into the Shipping Sorter. The V10 WCS will provide two tables, the SAP_Orders table for the box details, and the WCS_routing for the box routing information. The client in this communication is SAP and the server is the V10 WCS Microsoft SQL Server database.
+
+
+                    5.3.3.1.2 Fields in the SAP_Orders table
+This border table is used by SAP to insert box details. The V10 WCS must not modify its contents.
+
+Column Name / Field
+Datatype
+Description
+Id 
+int
+
+This is value automatically generated upon record insert.  This column must not be included in the Inserted data. 
+BoxId 
+char (18)
+
+The unique box identifier encoded in the barcode on the box.
+BoxType
+char (18)
+A code identifying the size of the box, used to determine the sorter lane.  Currently 20 sizes.
+Carrier Code
+char (10)
+The carrier is used to determine the sorter lane.  Luxottica to provide all carrier codes.
+LogisticAgent
+char (4)
+Pass-through data, not used by the WCS.
+These values shall be NULL for all records coming from AFS2.
+ConfirmationNumber
+char (20)
+Identifies a multi-box order.  This value shall be NULL for all non-multi-box orders.
+Qty
+Numeric (6,0)
+The quantity of boxes in a multi-box order.  This value shall be NULL for all non-multi-box orders.
+CurrentTs
+char (20)
+The timestamp at insertion.  Format: YYYYMMDDHHmmss.fff
+Time is the local time configured on the server. 
+Status
+char (2)
+IN:  Unprocessed
+NA:  The WCS has scanned the box
+
+The SAP system must not make changes to a row with a status of “NA”. 
+SAPSystem
+char (4)
+Pass through data, not used by the WCS.
+IncomingTs
+char(17)
+Time the record was added into WCS System. Format YYYY-MM-DD hh:mm:ss.fff
+Time is the local time configured on server
+Table 7: SAP_Orders Table.
+
+
+                    5.3.3.1.3 Fields in the WCS_routing table
+This border table is used by SAP to insert box routing information. The V10 WCS must not modify its contents. If the V10 WCS needs to query or update its contents, it must copy new records into its own tables.
+
+Column Name / Field
+Datatype
+Description
+Id
+int
+
+This is an auto-generated value.  
+BoxID
+char (18)
+
+The unique box identifier encoded in the barcode on the box.
+BoxType
+char (18)
+A code identifying the size of the box, retrieved from the corresponding record of SAP_Orders table.
+CarrierCode
+char (10)
+The carrier, retrieved from the corresponding record of SAP_Orders table.
+LogisticAgent
+char (4)
+Pass through data, not used by the WCS. For AFS1 records only, it is retrieved from the corresponding record of SAP_Orders table
+ConfirmationNumber
+char(20)
+Pass through data, retrieved from the corresponding record of SAP_Orders table.
+ContainerId
+char(20)
+Identifies the container to which the box has been assigned.  For palletized boxes, this shall be NULL.
+NOTE for its linkage to the WCS DivertLine: it is unique only considered together with ContainerType. Starts with GLDD for gaylords, and GLDT for Trailer. 
+ContainerType
+char(1)
+    • T = Trailer for Fluid Load (Diverts #1 and #2) 
+    • G = Gaylord: Diverts 5 through 28 
+    • P = Pallet: Divert #30 
+Qty
+numeric (6,0)
+NULL
+DivertLane
+numeric (4,0)
+WCS lane where the box is diverted
+CurrentTs
+nchar(20)
+The timestamp at insertion.  Format: YYYYMMDDHHmmss
+Time stamp shall be the local time configured on the WCS server. 
+Status
+char(2)
+IN:  Unprocessed or processed by WCS????
+NA:  The SAP PI has processed the record
+The WCM system must not make changes to a row with a status of “NA”.
+SAPSystem
+char(4)
+Pass through data, retrieved from the corresponding record of SAP_Orders table.
+
+Table 8: WCS_routing Table.
+

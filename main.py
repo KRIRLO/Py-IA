@@ -38,7 +38,7 @@ def responder_pregunta(pregunta, contexto):
     return answer
 
 # Ejemplo de uso
-ruta_documento = os.path.join(os.getcwd(), "documentos", "DEV.FSD.ELIOT v3.0.02 with changelog.docx")  # Get absolute path using current working directory
+ruta_documento = os.path.join(os.getcwd(), "documentos", "DEV.FSD.ELIOT v3.0.02 with changelog.txt")  # Get absolute path using current working directory
 try:
     documento = cargar_documento(ruta_documento)
     print(f"Documento cargado. Longitud: {len(documento)} caracteres")
