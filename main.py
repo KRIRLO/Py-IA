@@ -15,7 +15,12 @@ def inicializar_nltk():
     except LookupError:
         print("Descargando recursos de NLTK necesarios...")
         nltk.download('punkt', quiet=True)
-        print("Recursos descargados exitosamente.")
+        # Verificar que la descarga fue exitosa
+        try:
+            nltk.data.find('tokenizers/punkt')
+            print("Recursos descargados exitosamente.")
+        except LookupError:
+            raise Exception("Error: No se pudo descargar el recurso 'punkt' de NLTK.")
 
 # Inicializar NLTK al inicio
 inicializar_nltk()
