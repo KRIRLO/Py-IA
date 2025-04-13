@@ -9,10 +9,16 @@ import nltk
 from docx import Document
 
 # Descargar recursos necesarios de NLTK
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
+def inicializar_nltk():
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        print("Descargando recursos de NLTK necesarios...")
+        nltk.download('punkt', quiet=True)
+        print("Recursos descargados exitosamente.")
+
+# Inicializar NLTK al inicio
+inicializar_nltk()
 
 # Configurar el dispositivo DirectML
 device = dml.device()
